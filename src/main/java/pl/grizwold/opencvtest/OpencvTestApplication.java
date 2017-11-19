@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import org.opencv.core.Core;
+import pl.grizwold.opencvtest.controllers.MainSceneController;
 
 import java.net.URL;
 
@@ -21,10 +22,13 @@ public class OpencvTestApplication extends Application {
         FXMLLoader loader = new FXMLLoader(resource);
         BorderPane rootElement = loader.load();
 
-        Scene scene = new Scene(rootElement, 800, 600);
+        Scene scene = new Scene(rootElement, 880, 700);
 
         primaryStage.setTitle("Camera capture");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        MainSceneController controller = loader.getController();
+        primaryStage.setOnCloseRequest((event) -> controller.close());
     }
 }
