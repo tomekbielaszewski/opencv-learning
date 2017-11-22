@@ -5,16 +5,21 @@ import javafx.beans.property.ObjectProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import lombok.SneakyThrows;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Rect;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
+import java.net.URL;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,11 +33,16 @@ public class MainSceneController {
     private ImageView currentFrame;
     @FXML
     private Pane currentFramePane;
+    @FXML
+    private CheckBox grayscaleCheckbox;
+    @FXML
+    private CheckBox logoCheckbox;
 
     private VideoCapture capture = new VideoCapture();
     private ScheduledExecutorService timer;
 
     private boolean cameraActive = false;
+    private Mat logo;
 
     @FXML
     public void initialize() {
@@ -72,6 +82,13 @@ public class MainSceneController {
         }
     }
 
+    @FXML
+    protected void loadLogo() {
+        if(logoCheckbox.isSelected()) {
+            logo = Imgcodecs.imread("src/main/resources/logo.png");
+        }
+    }
+
     @SneakyThrows
     private void stopCapturing() {
         if (timer != null && !timer.isShutdown()) {
@@ -91,7 +108,15 @@ public class MainSceneController {
             capture.read(frame);
 
             if (!frame.empty()) {
-                Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2GRAY);
+                if (logoCheckbox.isSelected() && this.logo != null) {
+                    Rect roi = new Rect(frame.cols() - logo.cols(), frame.rows() - logo.rows(), logo.cols(),logo.rows());
+                    Mat imageROI = frame.submat(roi);
+
+                    Core.addWeighted(imageROI, 1.0, logo, 0.7, 0.0, imageROI);
+                }
+                if(grayscaleCheckbox.isSelected()) {
+                    Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2GRAY);
+                }
             }
         }
         return frame;
